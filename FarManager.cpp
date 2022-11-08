@@ -2,15 +2,22 @@
 #include<Windows.h>
 #include<stdio.h>
 
+struct Pos
+{
+    Pos(int x,int y) :x_pos(x), y_pos(y)
+    {}
+    int x_pos;
+    int y_pos;
+};
+
 extern "C" int MakeSum(int oneItem, int twoItem);
+extern "C" void DrawConsole(CHAR_INFO* buffer_screen,Pos pos,int lenght,CHAR_INFO infoChar);
 
 int main()
 {
-    HANDLE hStdout, hNewScreenBuffer;
-    SMALL_RECT srctReadRect;
-    SMALL_RECT srctWriteRect;
+    HANDLE hStdout, hNewScreenBuffer;  
     CONSOLE_SCREEN_BUFFER_INFO screen_Buffer_info;
-    CHAR_INFO* char_info;
+    CHAR_INFO* buffer_screen;
     int size_Screen;
     COORD coordBufSize;
     COORD coordBufCoord;
@@ -53,55 +60,38 @@ int main()
     }
 
     size_Screen = (int)screen_Buffer_info.dwSize.X * (int)screen_Buffer_info.dwSize.Y;
-    char_info = new CHAR_INFO[size_Screen];
-    memset(char_info, 0, size_Screen * sizeof(CHAR_INFO));
+    buffer_screen = new CHAR_INFO[size_Screen];
+    memset(buffer_screen, 0, size_Screen * sizeof(CHAR_INFO));
 
+    CHAR_INFO item;
+    item.Char.UnicodeChar = L'D';
+    item.Attributes = 0x50;
 
-    char_info[0].Char.UnicodeChar = L'D';
-    char_info[0].Attributes = 0x50;
-
-    // Set the source rectangle.
-
-    srctReadRect.Top = 0;    // top left: row 0, col 0
-    srctReadRect.Left = 0;
-    srctReadRect.Bottom = 1; // bot. right: row 1, col 79
-    srctReadRect.Right = 79;
-
-    // The temporary buffer size is 2 rows x 80 columns.
-
-    coordBufSize.Y = 2;
-    coordBufSize.X = 80;
-
-    // The top left destination cell of the temporary buffer is
-    // row 0, col 0.
+    Pos pos(1, 2);
+    DrawConsole(buffer_screen, pos, 10 , item);
+   
 
     coordBufCoord.X = 0;
     coordBufCoord.Y = 0;
 
     // Copy the block from the screen buffer to the temp. buffer.
 
-    
-
-    // Set the destination rectangle.
-
-    srctWriteRect.Top = 10;    // top lt: row 10, col 0
-    srctWriteRect.Left = 0;
-    srctWriteRect.Bottom = 11; // bot. rt: row 11, col 79
-    srctWriteRect.Right = 79;
 
     // Copy from the temporary buffer to the new screen buffer.
 
     fSuccess = WriteConsoleOutput(
         hNewScreenBuffer, // screen buffer to write to
-        char_info,        // buffer to copy from
+        buffer_screen,        // buffer to copy from
         screen_Buffer_info.dwSize,     // col-row size of chiBuffer
         coordBufCoord,    // top left src cell in chiBuffer
         &screen_Buffer_info.srWindow);  // dest. screen buffer rectangle
+
     if (!fSuccess)
     {
         printf("WriteConsoleOutput failed - (%d)\n", GetLastError());
         return 1;
     }
+
     Sleep(5000);
 
     // Restore the original active screen buffer.
