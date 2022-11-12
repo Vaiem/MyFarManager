@@ -2,16 +2,18 @@
 #include<Windows.h>
 #include<stdio.h>
 
-struct Pos
+struct DataMesseng
 {
-    Pos(int x,int y) :x_pos(x), y_pos(y)
+    DataMesseng(short x,short y,short screenWidth, short LenghtMess) : x_pos(x), y_pos(y), screen_width(screenWidth), lenght_mess(LenghtMess)
     {}
-    int x_pos;
-    int y_pos;
+    short x_pos;
+    short y_pos;
+    short screen_width;
+    short lenght_mess;
 };
 
 extern "C" int MakeSum(int oneItem, int twoItem);
-extern "C" void DrawConsole(CHAR_INFO* buffer_screen,Pos pos,int lenght,CHAR_INFO infoChar);
+extern "C" void DrawConsoleHorizontal(CHAR_INFO* buffer_screen,DataMesseng pos,CHAR_INFO infoChar);
 
 int main()
 {
@@ -19,8 +21,8 @@ int main()
     CONSOLE_SCREEN_BUFFER_INFO screen_Buffer_info;
     CHAR_INFO* buffer_screen;
     int size_Screen;
-    COORD coordBufSize;
-    COORD coordBufCoord;
+    SMALL_RECT srctWriteRect;
+    COORD coordBufCoord {};
     BOOL fSuccess;
    
 
@@ -67,12 +69,17 @@ int main()
     item.Char.UnicodeChar = L'D';
     item.Attributes = 0x50;
 
-    Pos pos(1, 2);
-    DrawConsole(buffer_screen, pos, 10 , item);
+    srctWriteRect.Top = 10;    // top lt: row 10, col 0
+    srctWriteRect.Left = 0;
+    srctWriteRect.Bottom = 11; // bot. rt: row 11, col 79
+    srctWriteRect.Right = 79;
+
+
+    DataMesseng pos(10, 2,screen_Buffer_info.dwSize.X,10);
+    DrawConsoleHorizontal(buffer_screen, pos , item);
    
 
-    coordBufCoord.X = 0;
-    coordBufCoord.Y = 0;
+    
 
     // Copy the block from the screen buffer to the temp. buffer.
 
